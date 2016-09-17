@@ -11,7 +11,8 @@
   },
   "build-tab": {
     "selectedTargets": [
-      "CORDOVA_ANDROID"
+      "CORDOVA_ANDROID",
+      "WEB_CHROME"
     ],
     "emailListForShareBuild": [
       "johnpisg@gmail.com"
