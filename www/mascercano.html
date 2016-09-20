@@ -56,52 +56,119 @@
         <script src="xdk/init-dev.js"></script>
         <!-- normalizes device and document ready events, see file for details -->
         
-        <script>
+        <script>           
+            
+            function contentString(titulo, descripcion) {
+                var content = '<div>\
+                  <h1 class="firstHeading">'+titulo+'</h1>\
+                  <div>\
+                    <p>'+descripcion+'</p>\
+                  </div>\
+                  </div>';
+                return content;
+            }            
+                      
             function initMap() {
                 var map, marker, markers = [];
                 var markerBounds = new google.maps.LatLngBounds();
-                var puntos = [{latitude: -12.104468, longitude: -77.046647}, {latitude: -12.107897, longitude:  -77.051092}, {latitude: -12.107400, longitude: -77.043379}];
+                var puntos = [];
+                //var puntos = [
+                    //{Lat: -12.104468, Lng: -77.046647, NombreLugar: 'Nombre lugar 1', DesCorta: '<b>Lorem ipsum dolor sit amet</b>, //consectetur adipisicing elit'}, 
+                    //{Lat: -12.107897, Lng:  -77.051092, NombreLugar: 'Nombre lugar 2', DesCorta: '<b>Lorem ipsum dolor sit amet</b>, //consectetur adipisicing elit'}, 
+                    //{Lat: -12.107400, Lng: -77.043379, NombreLugar: 'Nombre lugar 3', DesCorta: '<b>Lorem ipsum dolor sit amet</b>, //consectetur adipisicing elit'}];
+                                            
+                 var infowindow = new google.maps.InfoWindow({
+                        content: ''
+                    });
+                
         //document.addEventListener("deviceready", function(){
             navigator.geolocation.getCurrentPosition(function(position){
-                var mapProp = {center:new google.maps.LatLng(position.coords.latitude,position.coords.longitude), zoom:12, mapTypeId:google.maps.MapTypeId.ROADMAP};
+                for(var i=1; i<4; i++)
+                {
+                    var randomLat = position.coords.latitude + parseFloat((Math.random() * (0.0534 - 0.0223)).toFixed(6));
+                    var randomLng = position.coords.longitude + parseFloat((Math.random() * (0.0534 - 0.0223)).toFixed(6));
+                    puntos.push({
+                        Lat: randomLat, 
+                        Lng: randomLng, 
+                        NombreLugar: 'Nombre lugar ' + i, 
+                        DesCorta: '<b>Lorem ipsum dolor sit amet</b>, consectetur adipisicing elit'
+                    });
+                }
+                
+                var mapProp = {
+                    center:new google.maps.LatLng(position.coords.latitude, position.coords.longitude), 
+                    zoom:8, 
+                    mapTypeId:google.maps.MapTypeId.ROADMAP
+                };
                 map=new google.maps.Map(document.getElementById("googleMap"), mapProp);
-                //var marker=new google.maps.Marker({
-                    //position:new google.maps.LatLng(position.coords.latitude,position.coords.longitude)
-                //});
-                //marker.setMap(map);
+                marker=new google.maps.Marker({
+                    position:new google.maps.LatLng(position.coords.latitude,position.coords.longitude)
+                });
+                marker.setMap(map);
                 
                  $.each(puntos, function (index, value) {
                     marker = new google.maps.Marker({
-                        position: new google.maps.LatLng(value.latitude, value.longitude),
+                        position: new google.maps.LatLng(value.Lat, value.Lng),
                         map: map,
                         animation: google.maps.Animation.DROP
-                    });
+                    });                     
+                                      
+                    //(function(marker, value) {
+                        marker.addListener('click', function() {
+                            infowindow.setContent(contentString(value.NombreLugar, value.DesCorta));
+                            infowindow.open(map, this);
+                        });
+                    //})(marker, value);
                     markerBounds.extend(marker.getPosition());
-                    markers.push(marker);                                   
+                    markers.push(marker);
                 });
-                map.fitBounds(markerBounds);                
+                map.fitBounds(markerBounds);
+                
+                google.maps.event.addListener(map, 'click', function(){
+                    infowindow.close();
+                });
+                
+                
+                var directionsDisplay = new google.maps.DirectionsRenderer();
+                var directionsService = new google.maps.DirectionsService();
+                
+                var request = {
+                    origin: new google.maps.LatLng(position.coords.latitude, position.coords.longitude),
+                    destination: new google.maps.LatLng(puntos[0].Lat, puntos[0].Lng),
+                    travelMode: google.maps.TravelMode.DRIVING,
+                    unitSystem: google.maps.DirectionsUnitSystem.METRIC,
+                    provideRouteAlternatives: false
+                };
+                
+                directionsService.route(request, function(response, status) {
+                    if (status == google.maps.DirectionsStatus.OK) {
+                        directionsDisplay.setMap(map);
+                        //directionsDisplay.setPanel($("#panel_ruta").get(0));
+                        directionsDisplay.setDirections(response);
+                    } else {
+                            alert("No existen rutas entre ambos puntos");
+                    }
+                });
                 
             }, function(error){
-                if(error.code == PositionError.PERMISSION_DENIED) {
-                    alert("App doesn't have permission to use GPS");
+                if(error.code == 1) {//PositionError.PERMISSION_DENIED) {
+                    alert("La aplicación no tiene permiso para utilizar el GPS");
                 }
-                else if(error.code == PositionError.POSITION_UNAVAILABLE) {
-                    alert("No GPS device found");
+                else if(error.code == 2) {//PositionError.POSITION_UNAVAILABLE) {
+                    alert("No se encontró el dispositivo GPS");
                 }
-                else if(error.code == PositionError.TIMEOUT) {
-                    alert("Its taking too long find user location");
+                else if(error.code == 3) {//PositionError.TIMEOUT) {
+                    alert("Está tomando demasiado encontrar la ubicación del usuario");
                 }
                 else {
-                    alert("An unknown error occured");
+                    alert("Un error desconocido ocurrió");
                 }
             }, { maximumAge: 3000, timeout: 5000, enableHighAccuracy: true });
         }//, false);
     </script>
-       <script async defer
-          src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAs8UP5aLSQyJVAwMqspidsm9Q7Hv1IBGM&callback=initMap">
-        </script>
-        
-   
+    <script async defer
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAs8UP5aLSQyJVAwMqspidsm9Q7Hv1IBGM&callback=initMap">
+    </script>
         
     </head>
 

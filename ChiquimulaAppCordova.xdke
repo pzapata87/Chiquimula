@@ -10,10 +10,7 @@
     "currentEditorMode": 0
   },
   "build-tab": {
-    "selectedTargets": [
-      "CORDOVA_ANDROID",
-      "WEB_CHROME"
-    ],
+    "selectedTargets": [],
     "emailListForShareBuild": [
       "johnpisg@gmail.com"
     ]
